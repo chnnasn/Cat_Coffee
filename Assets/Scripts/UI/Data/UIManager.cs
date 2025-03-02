@@ -35,6 +35,7 @@ public class UIManager : Singleton<UIManager>
     /// </summary>
     public void ButtonOpenPanel(int index)
     {
+        #region °´Å¥
         foreach(ButtonAnim button in buttons)
         {
             if (button.buttonIndex != index)
@@ -51,8 +52,10 @@ public class UIManager : Singleton<UIManager>
             button.isSelected = !button.isSelected;
             button.ButtonPlayAnim();
         }
+        #endregion
 
-        foreach(PanelAnim panel in panels)
+        #region Ãæ°å
+        foreach (PanelAnim panel in panels)
         {
             if (panel.panelIndex != index)
             {
@@ -68,5 +71,6 @@ public class UIManager : Singleton<UIManager>
             panel.isSelected = !panel.isSelected;
             panel.PanelPlayAnim();
         }
+        #endregion
     }
 }
