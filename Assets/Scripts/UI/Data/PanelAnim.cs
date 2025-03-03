@@ -27,7 +27,7 @@ public class PanelAnim : MonoBehaviour
     {
         if (isSelected)
         {
-            transform.DOMoveY(transform.position.y + moveDistance, duration).SetEase(Ease.InOutQuad);
+            transform.DOMoveY(originYPos + moveDistance, duration).SetEase(Ease.InOutQuad);
         }
         else
         {
