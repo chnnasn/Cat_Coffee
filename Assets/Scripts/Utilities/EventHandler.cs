@@ -20,6 +20,6 @@ public static class EventHandler
     public static event Action<int, int, int, int> GameDateEvent;
     public static void CallGameDateEvent(int hour, int day, int month, int year)
     {
-        GameDateEvent?.Invoke(hour, day, month, year, season);
+        GameDateEvent?.Invoke(hour, day, month, year);
     }
 }
