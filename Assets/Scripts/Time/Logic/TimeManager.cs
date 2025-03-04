@@ -3,9 +3,8 @@ using UnityEngine;
 
 public class TimeManager : Singleton<TimeManager>
 {
-    private int gameSecond, gameMinute, gameHour, gameDay, gameMonth, gameYear;
+    public int gameSecond, gameMinute, gameHour, gameDay, gameMonth, gameYear;
 
-    private Season gameSeason = Season.春天;
     private int monthInSeason = 3;
 
     public bool gameClockPause;
@@ -18,7 +17,7 @@ public class TimeManager : Singleton<TimeManager>
 
     private void Start()
     {
-        gameClockPause = true;
+        gameClockPause = false;
         //EventHandler.CallGameDateEvent(gameHour, gameDay, gameMonth, gameYear, gameSeason);
         //EventHandler.CallGameMinuteEvent(gameMinute, gameHour, gameDay, gameSeason);
 
@@ -51,10 +50,6 @@ public class TimeManager : Singleton<TimeManager>
         if (Input.GetKeyDown(KeyCode.G))
         {
             gameDay++;
-            EventHandler.CallGameDayEvent(gameDay, gameSeason);
-
-            //更新UI
-            EventHandler.CallGameDateEvent(gameHour, gameDay, gameMonth, gameYear, gameSeason);
         }
     }
 
@@ -72,8 +67,6 @@ public class TimeManager : Singleton<TimeManager>
     private void OnBeforeSceneUnloadEvent()
     {
         gameClockPause = true;
-        EventHandler.CallGameDateEvent(gameHour, gameDay, gameMonth, gameYear, gameSeason);
-        EventHandler.CallGameMinuteEvent(gameMinute, gameHour, gameDay, gameSeason);
     }
 
     private void NewGameTime()
@@ -84,7 +77,6 @@ public class TimeManager : Singleton<TimeManager>
         gameDay = 1;  
         gameMonth = 1;
         gameYear = 2022;
-        gameSeason = Season.春天;
     }
 
     private void UpdateGameTime()
@@ -121,30 +113,14 @@ public class TimeManager : Singleton<TimeManager>
                         {
                             monthInSeason = 3;
 
-                            int seasonNumber = (int)gameSeason;
-                            seasonNumber++;
-
-                            if(seasonNumber > Settings.seasonHold)
-                            {
-                                seasonNumber = 0;
-                                gameYear++;
-                            }
-
-                            gameSeason = (Season)seasonNumber;  
-
                             if(gameYear > 9999)
                             {
                                 gameYear = 2022;
                             }
                         }
-
-                        //用来刷新地图和农作物生长
-                        EventHandler.CallGameDayEvent(gameDay, gameSeason);
                     }
                 }
-                EventHandler.CallGameDateEvent(gameHour, gameDay, gameMonth, gameYear, gameSeason);
             }
-            EventHandler.CallGameMinuteEvent(gameMinute, gameHour, gameDay, gameSeason);
         }
 
     }
