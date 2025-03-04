@@ -11,13 +11,6 @@ public enum SlotType
     Shop //商店格子
 }
 
-
-
-public enum Season
-{
-    春天,夏天,秋天,冬天
-}
-
 public enum GameState
 {
     GamePlay, Pause

@@ -13,6 +13,12 @@ public class UIManager : Singleton<UIManager>
     [Header("面板获取")]
     public GameObject panelsFather;
     public PanelAnim[] panels; //面板，索引按照按钮的顺序
+    public GameObject FacilityToolTip; //设施详情
+
+    private void Start()
+    {
+        FacilityToolTip.SetActive(false);
+    }
 
     /// <summary>
     /// 切换面板

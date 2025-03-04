@@ -7,98 +7,24 @@ using UnityEngine.UI;
 
 public class TimeUI : MonoBehaviour
 {
-    public RectTransform dayNightImage;
-    public RectTransform clockParent;
-    public Image seasonImage;
-    public TextMeshProUGUI dateText;
-    public TextMeshProUGUI timeText;
-    public Sprite[] seasonSprites;
+    public float startMinute, startHour;
+    public RectTransform hourHand;   // 时针的UI组件
+    public RectTransform minuteHand; // 分针的UI组件
 
-    public List<GameObject> clockBlocks = new List<GameObject>();
-
-    private void Awake()
+    private void Update()
     {
-        for (int i = 0; i < clockParent.childCount; i++)
-        {
-            clockBlocks.Add(clockParent.GetChild(i).gameObject);
-            clockParent.GetChild(i).gameObject.SetActive(false);
-        }
+        // 更新时针、分针和秒针的位置
+        UpdateClockHands();
     }
 
-    private void OnEnable()
+    private void UpdateClockHands()
     {
-        EventHandler.GameMinuteEvent += OnGameMinuteEvent;
-        EventHandler.GameDateEvent += OnGameDateEvent;
-    }
+        // 分针的旋转，分针每分钟转动360度，所以每分钟转动6度
+        float minuteRotation = TimeManager.Instance.gameMinute * 6 + TimeManager.Instance.gameSecond * 0.1f + startMinute * 6; // 每秒1/10度
+        minuteHand.rotation = Quaternion.Euler(0, 0, -minuteRotation);  // 负值使得顺时针旋转
 
-    private void OnDisable()
-    {
-        EventHandler.GameMinuteEvent -= OnGameMinuteEvent;
-        EventHandler.GameDateEvent -= OnGameDateEvent;
-    }
-
-    /// <summary>
-    /// 设置时间正确显示
-    /// </summary>
-    /// <param name="minute"></param>
-    /// <param name="hour"></param>
-    private void OnGameMinuteEvent(int minute, int hour, int day, Season season)
-    {
-        timeText.text = hour.ToString("00") + ":" + minute.ToString("00");
-    }   
-
-    /// <summary>
-    /// 设置UI跟日期跟季节正确显示
-    /// </summary>
-    /// <param name="hour"></param>
-    /// <param name="day"></param>
-    /// <param name="month"></param>
-    /// <param name="year"></param>
-    /// <param name="season"></param>
-    /// <exception cref="System.NotImplementedException"></exception>
-    private void OnGameDateEvent(int hour, int day, int month, int year, Season season)
-    {
-        dateText.text = year + "年" + month.ToString("00") + "月" + day.ToString("00") + "日";
-        seasonImage.sprite = seasonSprites[(int)season];
-
-        SwitchHourImage(hour);
-        DayNightImageRotate(hour);
-    }
-
-    /// <summary>
-    /// 根据小时切换时间轮盘UI的正确显示
-    /// </summary>
-    /// <param name="hour"></param>
-    private void SwitchHourImage(int hour)
-    {
-        int index = hour / 4;
-        if(index == 0)
-        {
-            foreach(var item in clockBlocks)
-            {
-                item.SetActive(false);
-            }
-        }
-        else
-        {
-            for(int i = 0; i < clockBlocks.Count; i++)
-            {
-                if(i < index + 1)
-                    clockBlocks[i].SetActive(true);
-                else
-                    clockBlocks[i].SetActive(false);
-            }
-        }
-    }
-
-    /// <summary>
-    /// 旋转时间的图标
-    /// </summary>
-    /// <param name="hour"></param>
-    private void DayNightImageRotate(int hour)
-    {
-        //24小时，每个小时15度
-        var target = new Vector3(0, 0, hour * 15 - 90);
-        dayNightImage.DORotate(target, 1f, RotateMode.Fast);
+        // 时针的旋转，时针每小时转动30度
+        float hourRotation = (TimeManager.Instance.gameHour % 12) * 30 + TimeManager.Instance.gameMinute * 0.5f + (startHour % 12) * 30 + startMinute * 0.5f; // 每分钟额外转动0.5度
+        hourHand.rotation = Quaternion.Euler(0, 0, -hourRotation);  // 负值使得顺时针旋转
     }
 }

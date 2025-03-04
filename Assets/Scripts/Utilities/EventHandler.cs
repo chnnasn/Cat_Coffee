@@ -5,21 +5,21 @@ using UnityEngine;
 
 public static class EventHandler
 {
-    public static event Action<int, int, int, Season> GameMinuteEvent;
-    public static void CallGameMinuteEvent(int minute, int hour, int day, Season season)
+    public static event Action<int, int, int> GameMinuteEvent;
+    public static void CallGameMinuteEvent(int minute, int hour, int day)
     {
-        GameMinuteEvent?.Invoke(minute, hour, day, season);
+        GameMinuteEvent?.Invoke(minute, hour, day);
     }
 
-    public static event Action<int, Season> GameDayEvent;
-    public static void CallGameDayEvent(int day, Season season)
+    public static event Action<int> GameDayEvent;
+    public static void CallGameDayEvent(int day)
     {
-        GameDayEvent?.Invoke(day, season);
+        GameDayEvent?.Invoke(day);
     }
 
-    public static event Action<int, int, int, int, Season> GameDateEvent;
-    public static void CallGameDateEvent(int hour, int day, int month, int year, Season season)
+    public static event Action<int, int, int, int> GameDateEvent;
+    public static void CallGameDateEvent(int hour, int day, int month, int year)
     {
-        GameDateEvent?.Invoke(hour, day, month, year, season);
+        GameDateEvent?.Invoke(hour, day, month, year);
     }
 }
