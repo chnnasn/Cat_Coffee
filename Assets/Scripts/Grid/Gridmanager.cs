@@ -1,5 +1,15 @@
-using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Events;
+
+public class IndexEvent : MonoBehaviour
+{
+    public static UnityEvent<int> Index = new UnityEvent<int>();
+
+    public static void GetIndex(int index)
+    {
+        Index.Invoke(index);
+    }
+}
 
 public class Gridmanager : MonoBehaviour
 {
@@ -14,9 +24,16 @@ public class Gridmanager : MonoBehaviour
 
     bool ShowMesh = false;
 
-    public Transform Build;
+    Buildpresets Build;
+
+    public Builds BuildValue;
     
 
+    private void OnEnable()
+    {
+        IndexEvent.Index.AddListener(OnBuildingSelected);
+    }
+    
     private void Awake()
     {
         Time.timeScale = 1;
@@ -38,6 +55,8 @@ public class Gridmanager : MonoBehaviour
     {
         grid = new Grid<int>(width, height, Size, transform.position, transform.GetChild(0), true);
 
+        CreatePresets();
+
         transform.GetChild(0).gameObject.SetActive(ShowMesh);
     }
 
@@ -46,10 +65,17 @@ public class Gridmanager : MonoBehaviour
         if (!transform.GetChild(0).gameObject.activeSelf && ShowMesh)
         {
             transform.GetChild(0).gameObject.SetActive(ShowMesh);
+            transform.GetChild(1).gameObject.SetActive(ShowMesh);
         }
-        else
+        else if (transform.GetChild(0).gameObject.activeSelf && !ShowMesh)
         {
+            Build = null;
+            for (int i = 0; i < transform.GetChild(1).childCount; i++)
+            {
+                transform.GetChild(1).GetChild(i).gameObject.SetActive(false);
+            }
             transform.GetChild(0).gameObject.SetActive(ShowMesh);
+            transform.GetChild(1).gameObject.SetActive(ShowMesh);
         }
 
         if (ShowMesh)
@@ -59,14 +85,15 @@ public class Gridmanager : MonoBehaviour
             {
                 if (Input.GetMouseButtonDown(1))
                 {
-                    Buildpresets buildpresets = Build.GetComponentInChildren<Buildpresets>();
-                    buildpresets.CreateBuild(Physics2D.Raycast(Build.GetChild(0).GetChild(0).position,
-                        Vector2.zero).collider.transform.position);
-
+                    RaycastHit2D hit = Physics2D.Raycast(Build.transform.GetChild(0).position, Vector2.zero);
+                    if (hit != null && grid.GetValue(hit.collider.name)!=3)
+                    {
+                        int x = int.Parse(hit.collider.name.Split("_")[0]);
+                        int y = int.Parse(hit.collider.name.Split("_")[1]);
+                        Build.CreateBuild(hit.collider.transform.position,(width - x) + (height - y));
+                    }
                 }
             }
-
-            
             
         }
 
@@ -81,6 +108,23 @@ public class Gridmanager : MonoBehaviour
         }*/
     }
 
+    private void OnDisable()
+    {
+        IndexEvent.Index.RemoveListener(OnBuildingSelected);
+    }
+    
+    
+    void OnBuildingSelected(int Index)
+    {
+        for (int i = 0; i < transform.GetChild(1).childCount; i++)
+        {
+            transform.GetChild(1).GetChild(i).gameObject.SetActive(false);
+        }
+        
+        Build = transform.GetChild(1).GetChild(Index).GetComponentInChildren<Buildpresets>();
+        Build.transform.parent.gameObject.SetActive(true);
+    }
+    
     // 将所有网格的值重置为0
     void ResetGridValues()
     {
@@ -114,41 +158,49 @@ public class Gridmanager : MonoBehaviour
 
     void MouseBuild()
     {
-        Vector3 po = mainCamera.ScreenToWorldPoint(Input.mousePosition);
-        po.z = 0;
-        Build.position = po;
+        if (Build !=null)
+        {
+            Vector3 po = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+            po.z = 0;
+            Build.transform.parent.position = po;
+        }
     }
 
     // 当 Build 移动时调用此函数
     bool ClikMesh()
     {
 
-        ResetGridValues();
-        
-        Buildpresets buildpresets = Build.GetComponentInChildren<Buildpresets>();
-        Transform[] mesh = buildpresets.ShootRaysFromChildren(); // 获取命中的所有网格
-
-        set(mesh);
-        
-        // 判断是否有命中物体
-        if (mesh != null && mesh.Length > 0)
+        if (Build !=null)
         {
-            // 遍历所有命中的网格
-            foreach (var h in mesh)
-            {
-                // 如果网格的值是1，返回false
-                if (grid.GetValue(h.name) == 3)
-                {
-                    return false;
-                }
-            }
+            ResetGridValues();
+            Transform[] mesh = Build.ShootRaysFromChildren(); // 获取命中的所有网格
 
-            // 如果没有命中值为1的网格，返回true
-            return true;
+            set(mesh);
+        
+            // 判断是否有命中物体
+            if (mesh != null && mesh.Length > 0)
+            {
+                // 遍历所有命中的网格
+                foreach (var h in mesh)
+                {
+                    // 如果网格的值是1，返回false
+                    if (grid.GetValue(h.name) == 3)
+                    {
+                        return false;
+                    }
+                }
+
+                // 如果没有命中值为1的网格，返回true
+                return true;
+            }
+            else
+            {
+                // 如果没有命中任何网格，返回false
+                return false;
+            }
         }
         else
         {
-            // 如果没有命中任何网格，返回false
             return false;
         }
     }
@@ -174,6 +226,29 @@ public class Gridmanager : MonoBehaviour
                 
             }
         }
+
+    }
+
+    void CreatePresets()
+    {
+        for (int i = 0; i < BuildValue.Values.Count; i++)
+        {
+            GameObject pa = new GameObject();
+            pa.transform.SetParent(transform.GetChild(1));
+            pa.name =  BuildValue.Values[i].Sprite.name;
+            GameObject Center = new GameObject();
+            Center.name = "Center";
+            Center.transform.SetParent(pa.transform);
+            Center.transform.localPosition =
+                new Vector3(BuildValue.Values[i].offset.x, BuildValue.Values[i].offset.y, 0);
+            SpriteRenderer spriteRenderer = pa.AddComponent<SpriteRenderer>();
+            spriteRenderer.sprite = BuildValue.Values[i].Sprite;
+            spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b,
+                0.5f);
+            Buildpresets buildpresets = Center.AddComponent<Buildpresets>();
+            buildpresets.Create( BuildValue.Values[i].Size.x, BuildValue.Values[i].Size.y);
+        }
+        transform.GetChild(1).gameObject.SetActive(false);
 
     }
 

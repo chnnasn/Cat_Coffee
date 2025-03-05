@@ -4,24 +4,18 @@ using UnityEngine;
 
 public class Buildpresets : MonoBehaviour
 {
-    public int height;
-    public int width;
 
     private Grid<int> grid;
-
-    // Start is called before the first frame update
-    void Start()
+    public void Create(int width,int height)
     {
+        
         if (transform.childCount == 0)
         {
             grid = new Grid<int>(width, height, Gridmanager.instance.Size, transform.position, transform, false);
         }
+        transform.parent.gameObject.SetActive(false);
     }
 
-    private void Update()
-    {
-        
-    }
 
     // 发射射线的方法
     public Transform[] ShootRaysFromChildren()
@@ -50,30 +44,34 @@ public class Buildpresets : MonoBehaviour
     }
     
     
-    public void CreateBuild(Vector3 POS)
+    public void CreateBuild(Vector3 POS,int Order)
     {
         /*Debug.Log(POS);*/
     
         // 实例化对象
-        Buildpresets buildpresets = Instantiate(transform.parent.gameObject, POS, quaternion.identity)
+        Buildpresets presets = Instantiate(transform.parent.gameObject, POS, quaternion.identity)
             .GetComponentInChildren<Buildpresets>();
 
-        // 获取第一个子对象的第一个子对象
-        Transform targetChild = buildpresets.transform.GetChild(buildpresets.transform.childCount - 1);
+        SpriteRenderer spriteRenderer = presets.transform.parent.gameObject.GetComponent<SpriteRenderer>();
+        spriteRenderer.sortingOrder = Order;
+        spriteRenderer.color = new Color(spriteRenderer.color.r, spriteRenderer.color.g, spriteRenderer.color.b,
+            1);
+        
+        Transform targetChild = presets.transform.transform.GetChild(0);
 
         if (targetChild != null)
         {
             // 计算偏移量
-            Vector3 offset = targetChild.position - buildpresets.transform.position;
+            Vector3 offset = targetChild.position - POS;
 
-            offset.y = Gridmanager.instance.Size + offset.y;
-        
+            offset.y = Mathf.Abs(offset.y);
+            
             // 让目标子对象的坐标与POS一致
-            buildpresets.transform.parent.position += offset;
+            presets.transform.parent.position += offset;
         }
 
         // 更新Gridmanager
-        Gridmanager.instance.SetValue(buildpresets.ShootRaysFromChildren());
+        Gridmanager.instance.SetValue(presets.ShootRaysFromChildren());
     }
     
 }
